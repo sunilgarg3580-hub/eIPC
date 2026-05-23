@@ -1,65 +1,140 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
-  return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+import React, { useEffect, useState } from "react";
+import { CLIENT_TABS, ADVOCATE_TABS } from "@/lib/content";
+import type { Role, LoginMode } from "@/lib/types";
+import { Header } from "@/components/common/Header";
+import { PortalLayout } from "@/components/common/PortalLayout";
+import { LoginModal } from "@/components/auth/LoginModal";
+import { GuestHome } from "@/components/guest/GuestHome";
+import { ClientDashboard } from "@/components/client/ClientDashboard";
+import { ClientChat } from "@/components/client/ClientChat";
+import { ClientCases } from "@/components/client/ClientCases";
+import { ClientDrafts } from "@/components/client/ClientDrafts";
+import { CourtTracker } from "@/components/client/CourtTracker";
+import { FindAdvocate } from "@/components/client/FindAdvocate";
+import { AdvocateDashboard } from "@/components/advocate/AdvocateDashboard";
+import { AdvocateLeads } from "@/components/advocate/AdvocateLeads";
+import { AdvocateMessages } from "@/components/advocate/AdvocateMessages";
+import { ReviewQueue } from "@/components/advocate/ReviewQueue";
+import { AdvocateCases } from "@/components/advocate/AdvocateCases";
+import { AdvocateProfile } from "@/components/advocate/AdvocateProfile";
+import { getCurrentUser } from "@/lib/session";
+import { logoutUser } from "@/lib/authService";
+import { ClientProfile } from "@/components/client/ClientProfile";
+import { EvidenceVault } from "@/components/client/EvidenceVault";
+
+export default function Page() {
+  const [role, setRole] = useState<Role>("guest");
+  const [loginMode, setLoginMode] = useState<LoginMode>("none");
+  const [activeTab, setActiveTab] = useState("dashboard");
+  const [initializing, setInitializing] = useState(true);
+  const [userName, setUserName] = useState("");
+
+  useEffect(() => {
+    async function restoreSession() {
+      try {
+        const session = await getCurrentUser();
+
+        if (session?.profile?.role === "client") {
+          setRole("client");
+        } else if (session?.profile?.role === "advocate") {
+          setRole("advocate");
+        } else {
+          setRole("guest");
+        }
+        setUserName(session?.profile?.full_name || "");
+      } catch (err) {
+        console.error("SESSION_RESTORE_ERROR:", err);
+        setRole("guest");
+      } finally {
+        setInitializing(false);
+      }
+    }
+
+    restoreSession();
+  }, []);
+
+  async function completeLogin(selectedRole: Role) {
+    const session = await getCurrentUser();
+    setUserName(session?.profile?.full_name || "");
+
+    setRole(selectedRole);
+    setLoginMode("none");
+    setActiveTab("dashboard");
+  }
+
+  async function handleLogout() {
+    try {
+      await logoutUser();
+    } catch (err) {
+      console.error("LOGOUT_ERROR:", err);
+    } finally {
+      setRole("guest");
+      setLoginMode("none");
+      setActiveTab("dashboard");
+    }
+  }
+
+  if (initializing) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-slate-100">
+        <div className="rounded-3xl bg-white px-8 py-6 shadow-xl">
+          <div className="text-lg font-semibold">Loading eIPC...</div>
+          <div className="mt-1 text-sm text-slate-500">Checking your session</div>
         </div>
       </main>
-    </div>
+    );
+  }
+
+  return (
+    <main className="min-h-screen bg-slate-100">
+      <Header
+        role={role}
+        userName={userName}
+        setLoginMode={setLoginMode}
+        setActiveTab={setActiveTab}
+        onLogout={handleLogout}
+      />
+
+      {loginMode !== "none" && (
+        <LoginModal
+          mode={loginMode}
+          onClose={() => setLoginMode("none")}
+          onLogin={(loggedInRole) => completeLogin(loggedInRole)}
+        />
+      )}
+
+      {role === "guest" && (
+        <GuestHome
+          openClientLogin={() => setLoginMode("client")}
+          openAdvocateLogin={() => setLoginMode("advocate")}
+        />
+      )}
+
+      {role === "client" && (
+        <PortalLayout tabs={CLIENT_TABS} activeTab={activeTab} setActiveTab={setActiveTab}>
+          {activeTab === "dashboard" && <ClientDashboard />}
+          {activeTab === "profile" && <ClientProfile />}
+          {activeTab === "chat" && <ClientChat />}
+          {activeTab === "cases" && <ClientCases />}
+          {activeTab === "evidence" && <EvidenceVault />}
+          {activeTab === "drafts" && <ClientDrafts />}
+          {activeTab === "tracker" && <CourtTracker />}
+          {activeTab === "lawyers" && <FindAdvocate />}
+        </PortalLayout>
+      )}
+
+      {role === "advocate" && (
+        <PortalLayout tabs={ADVOCATE_TABS} activeTab={activeTab} setActiveTab={setActiveTab}>
+          {activeTab === "dashboard" && <AdvocateDashboard />}
+          {activeTab === "leads" && <AdvocateLeads />}
+          {activeTab === "messages" && <AdvocateMessages />}
+          {activeTab === "reviews" && <ReviewQueue />}
+          {activeTab === "cases" && <AdvocateCases />}
+          {activeTab === "profile" && <AdvocateProfile />}
+        </PortalLayout>
+      )}
+    </main>
   );
 }
