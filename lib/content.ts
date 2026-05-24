@@ -109,7 +109,9 @@ export const GUEST = {
 
 export const CLIENT_TABS = [
   ["dashboard", "Dashboard"],
-  ["chat", "AI Legal Chat"],
+  ["approvals", "Advocate Approvals"],
+  ["chat", "AI Legal Assistant"],
+["messages", "Client Messages"],
   ["cases", "My Case Files"],
   ["evidence", "Evidence Vault"],
   ["analysis", "AI Case Analysis"],

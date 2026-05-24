@@ -4,10 +4,10 @@ import React, { useEffect, useState } from "react";
 import { getAcceptedAdvocateCases } from "@/lib/leadService";
 import { getCurrentUser } from "@/lib/session";
 import {
-  getCaseMessages,
-  markAdvocateMessagesRead,
-  sendCaseMessage,
-} from "@/lib/messageService";
+  getCaseHumanMessages,
+  markCaseMessagesRead,
+  sendCaseHumanMessage,
+} from "@/lib/caseMessageService";
 import { getEvidenceFiles, getEvidenceSignedUrl } from "@/lib/evidenceService";
 import { getCaseDrafts } from "@/lib/draftService";
 
@@ -49,7 +49,7 @@ export function AdvocateCases() {
       setSelectedCase(caseItem);
 
       const [caseMessages, caseEvidence, caseDrafts] = await Promise.all([
-        getCaseMessages(caseItem.id),
+        getCaseHumanMessages(caseItem.id),
         getEvidenceFiles(caseItem.id),
         getCaseDrafts(caseItem.id),
       ]);
@@ -58,7 +58,7 @@ export function AdvocateCases() {
       setEvidence(caseEvidence);
       setDrafts(caseDrafts);
 
-      await markAdvocateMessagesRead(caseItem.id);
+      await markCaseMessagesRead(caseItem.id, "advocate");
     } catch (err: any) {
       alert(err.message || "Unable to open case.");
     }
@@ -67,7 +67,7 @@ export function AdvocateCases() {
   async function refreshMessages() {
     if (!selectedCase?.id) return;
 
-    const updated = await getCaseMessages(selectedCase.id);
+    const updated = await getCaseHumanMessages(selectedCase.id);
     setMessages(updated);
   }
 
@@ -75,25 +75,15 @@ export function AdvocateCases() {
     loadCases();
   }, []);
 
-  useEffect(() => {
-    if (!selectedCase?.id) return;
-
-    const interval = setInterval(() => {
-      refreshMessages();
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, [selectedCase]);
-
   async function sendMessage() {
     try {
       if (!input.trim() || !selectedCase || !advocateId) return;
 
       setSending(true);
 
-      await sendCaseMessage({
+      await sendCaseHumanMessage({
         caseId: selectedCase.id,
-        userId: advocateId,
+        senderId: advocateId,
         role: "advocate",
         message: input,
       });
@@ -147,11 +137,10 @@ export function AdvocateCases() {
               <button
                 key={c.id}
                 onClick={() => openCase(c)}
-                className={`w-full rounded-2xl border p-4 text-left text-sm ${
-                  selectedCase?.id === c.id
-                    ? "bg-slate-950 text-white"
-                    : "bg-white"
-                }`}
+                className={`w-full rounded-2xl border p-4 text-left text-sm ${selectedCase?.id === c.id
+                  ? "bg-slate-950 text-white"
+                  : "bg-white"
+                  }`}
               >
                 <div className="font-semibold">{c.title}</div>
                 <div className="mt-1 opacity-70">{c.case_type}</div>

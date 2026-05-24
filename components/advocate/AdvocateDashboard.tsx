@@ -3,19 +3,34 @@
 import React, { useEffect, useState } from "react";
 import { getCurrentUser } from "@/lib/session";
 import { getAdvocateDashboardStats } from "@/lib/leadService";
-import { getUnreadMessagesForAdvocate } from "@/lib/messageService";
 import { AdvocateLeads } from "./AdvocateLeads";
+import { getUnreadHumanMessagesForAdvocate } from "@/lib/caseMessageService";
 
-function Stat({ title, value }: { title: string; value: string }) {
+function Stat({
+  title,
+  value,
+  onClick,
+}: {
+  title: string;
+  value: string;
+  onClick?: () => void;
+}) {
   return (
-    <div className="rounded-3xl bg-white p-5 shadow">
+    <button
+      onClick={onClick}
+      className="rounded-3xl bg-white p-5 text-left shadow hover:bg-slate-50"
+    >
       <div className="text-sm text-slate-500">{title}</div>
       <div className="mt-2 text-3xl font-bold">{value}</div>
-    </div>
+    </button>
   );
 }
 
-export function AdvocateDashboard() {
+export function AdvocateDashboard({
+  setActiveTab,
+}: {
+  setActiveTab?: (tab: string) => void;
+}) {
   const [stats, setStats] = useState({
     newLeads: 0,
     clientMessages: 0,
@@ -30,12 +45,11 @@ export function AdvocateDashboard() {
       setLoading(true);
 
       const session = await getCurrentUser();
-
       if (!session?.user?.id) return;
 
       const [dashboardStats, unreadMessages] = await Promise.all([
         getAdvocateDashboardStats(session.user.id),
-        getUnreadMessagesForAdvocate(session.user.id),
+        getUnreadHumanMessagesForAdvocate(session.user.id),
       ]);
 
       setStats({
@@ -51,24 +65,34 @@ export function AdvocateDashboard() {
 
   useEffect(() => {
     loadDashboard();
-
-    const interval = setInterval(() => {
-      loadDashboard();
-    }, 5000);
-
-    return () => clearInterval(interval);
   }, []);
 
   return (
     <div className="grid gap-6">
       <div className="grid gap-4 md:grid-cols-4">
-        <Stat title="New leads" value={String(stats.newLeads)} />
+        <Stat
+          title="New leads"
+          value={String(stats.newLeads)}
+          onClick={() => setActiveTab?.("leads")}
+        />
+
         <Stat
           title="Unread client messages"
           value={String(stats.clientMessages)}
+          onClick={() => setActiveTab?.("messages")}
         />
-        <Stat title="Review requests" value={String(stats.reviewRequests)} />
-        <Stat title="Active clients" value={String(stats.activeClients)} />
+
+        <Stat
+          title="Review requests"
+          value={String(stats.reviewRequests)}
+          onClick={() => setActiveTab?.("cases")}
+        />
+
+        <Stat
+          title="Active clients"
+          value={String(stats.activeClients)}
+          onClick={() => setActiveTab?.("cases")}
+        />
       </div>
 
       {loading ? (

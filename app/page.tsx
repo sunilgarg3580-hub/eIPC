@@ -24,6 +24,8 @@ import { logoutUser } from "@/lib/authService";
 import { ClientProfile } from "@/components/client/ClientProfile";
 import { EvidenceVault } from "@/components/client/EvidenceVault";
 import { CaseAnalysis } from "@/components/client/CaseAnalysis";
+import { AdvocateApprovals } from "@/components/client/AdvocateApprovals";
+import { ClientMessages } from "@/components/client/ClientMessages";
 
 export default function Page() {
   const [role, setRole] = useState<Role>("guest");
@@ -77,7 +79,9 @@ export default function Page() {
       "dashboard",
       "profile",
       "chat",
+      "messages",
       "cases",
+      "approvals",
       "evidence",
       "analysis",
       "drafts",
@@ -164,10 +168,12 @@ export default function Page() {
           activeTab={activeTab}
           setActiveTab={safeSetActiveTab}
         >
-          {activeTab === "dashboard" && <ClientDashboard />}
+          {activeTab === "dashboard" && (<ClientDashboard setActiveTab={safeSetActiveTab} />)}
           {activeTab === "profile" && <ClientProfile />}
           {activeTab === "chat" && <ClientChat />}
+          {activeTab === "messages" && <ClientMessages />}
           {activeTab === "cases" && <ClientCases />}
+          {activeTab === "approvals" && <AdvocateApprovals />}
           {activeTab === "evidence" && <EvidenceVault />}
           {activeTab === "analysis" && <CaseAnalysis />}
           {activeTab === "drafts" && <ClientDrafts />}
@@ -182,7 +188,7 @@ export default function Page() {
           activeTab={activeTab}
           setActiveTab={safeSetActiveTab}
         >
-          {activeTab === "dashboard" && <AdvocateDashboard />}
+          {activeTab === "dashboard" && <AdvocateDashboard setActiveTab={safeSetActiveTab} />}
           {activeTab === "leads" && <AdvocateLeads />}
           {activeTab === "messages" && <AdvocateMessages />}
           {activeTab === "reviews" && <ReviewQueue />}

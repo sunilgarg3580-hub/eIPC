@@ -1,8 +1,22 @@
-export function Stat({ title, value }: { title: string; value: string }) {
+export function Stat({
+  title,
+  value,
+  onClick,
+}: {
+  title: string;
+  value: string;
+  onClick?: () => void;
+}) {
   return (
-    <div className="rounded-3xl bg-white p-5 shadow">
-      <div className="text-sm text-slate-500">{title}</div>
-      <div className="mt-2 text-3xl font-bold">{value}</div>
-    </div>
+    <button
+      onClick={onClick}
+      className="rounded-3xl bg-white p-5 text-left shadow transition hover:-translate-y-0.5 hover:bg-slate-50 hover:shadow-md"
+    >
+      <div className="text-sm font-medium text-slate-500">{title}</div>
+
+      <div className="mt-2 text-3xl font-bold tracking-tight text-slate-950">
+        {value}
+      </div>
+    </button>
   );
 }
