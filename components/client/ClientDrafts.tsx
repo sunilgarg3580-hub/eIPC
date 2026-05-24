@@ -399,7 +399,7 @@ IMPORTANT DRAFTING REQUIREMENTS:
         urgency: "medium",
       });
 
-      alert("Sent to advocate review queue.");
+      alert("This case has been sent to advocate review. Duplicate requests are not allowed.");
     } catch (err: any) {
       alert(err.message || "Unable to send to advocate.");
     }

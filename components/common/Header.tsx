@@ -26,7 +26,10 @@ export function Header({
             <h1 className="text-2xl font-bold tracking-tight text-slate-950">
               {BRAND.name}
             </h1>
-            <p className="text-sm text-slate-500">{BRAND.tagline}</p>
+
+            <p className="text-sm text-slate-500">
+              {BRAND.tagline}
+            </p>
           </div>
         </div>
 
@@ -52,16 +55,36 @@ export function Header({
               Welcome, {userName || role}
             </span>
 
-            <button
-              onClick={() => setActiveTab("profile")}
-              className="rounded-2xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold hover:bg-slate-50"
-            >
-              My Profile
-            </button>
+            {role !== "guest" && (
+              <button
+                onClick={() => setActiveTab("profile")}
+                className="rounded-2xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold hover:bg-slate-50"
+              >
+                My Profile
+              </button>
+            )}
+
+            {role === "client" && (
+              <button
+                onClick={() => setActiveTab("cases")}
+                className="rounded-2xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold hover:bg-slate-50"
+              >
+                My Cases
+              </button>
+            )}
+
+            {role === "advocate" && (
+              <button
+                onClick={() => setActiveTab("leads")}
+                className="rounded-2xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold hover:bg-slate-50"
+              >
+                New Leads
+              </button>
+            )}
 
             <button
               onClick={onLogout}
-              className="rounded-2xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold hover:bg-slate-50"
+              className="rounded-2xl border border-red-200 bg-red-50 px-5 py-3 text-sm font-semibold text-red-700 hover:bg-red-100"
             >
               {HEADER.logout}
             </button>

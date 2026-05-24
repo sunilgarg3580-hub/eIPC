@@ -1,11 +1,13 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { getAllOpenLeads } from "@/lib/leadService";
+import { acceptLead, getAllOpenLeads } from "@/lib/leadService";
+import { getCurrentUser } from "@/lib/session";
 
 export function AdvocateLeads() {
   const [leads, setLeads] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [acceptingId, setAcceptingId] = useState("");
 
   async function loadLeads() {
     try {
@@ -22,6 +24,31 @@ export function AdvocateLeads() {
   useEffect(() => {
     loadLeads();
   }, []);
+
+  async function handleAcceptLead(lead: any) {
+    try {
+      const session = await getCurrentUser();
+      if (!session?.user?.id) {
+        alert("Please login again.");
+        return;
+      }
+
+      setAcceptingId(lead.id);
+
+      await acceptLead({
+        leadId: lead.id,
+        advocateId: session.user.id,
+        caseId: lead.case_id,
+      });
+
+      await loadLeads();
+      alert("Lead accepted. Case moved to Client Cases.");
+    } catch (err: any) {
+      alert(err.message || "Unable to accept lead.");
+    } finally {
+      setAcceptingId("");
+    }
+  }
 
   return (
     <section className="rounded-3xl bg-white p-6 shadow">
@@ -64,14 +91,13 @@ export function AdvocateLeads() {
                 <div><b>Mobile:</b> {lead.profiles?.mobile || "Not available"}</div>
               </div>
 
-              <div className="mt-4 flex gap-3">
-                <button className="rounded-2xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white">
-                  View Case Brief
-                </button>
-                <button className="rounded-2xl border px-5 py-3 text-sm font-semibold">
-                  Reply to Client
-                </button>
-              </div>
+              <button
+                onClick={() => handleAcceptLead(lead)}
+                disabled={acceptingId === lead.id}
+                className="mt-4 rounded-2xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white disabled:opacity-50"
+              >
+                {acceptingId === lead.id ? "Accepting..." : "Accept Lead"}
+              </button>
             </div>
           ))}
         </div>

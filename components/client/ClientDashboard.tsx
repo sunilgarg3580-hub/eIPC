@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { getClientCases } from "@/lib/caseService";
 import { getCurrentUser } from "@/lib/session";
+import { getUnreadMessagesForClient } from "@/lib/messageService";
 import { Stat } from "@/components/common/Stat";
 import { Panel } from "@/components/common/Panel";
 
@@ -22,6 +23,7 @@ type CaseRecord = {
 export function ClientDashboard() {
   const [cases, setCases] = useState<CaseRecord[]>([]);
   const [loading, setLoading] = useState(true);
+  const [unreadMessages, setUnreadMessages] = useState(0);
 
   async function loadDashboard() {
     try {
@@ -29,12 +31,13 @@ export function ClientDashboard() {
 
       const session = await getCurrentUser();
 
-      if (!session?.user?.id) {
-        return;
-      }
+      if (!session?.user?.id) return;
 
       const data = await getClientCases(session.user.id);
       setCases(data);
+
+      const unread = await getUnreadMessagesForClient(session.user.id);
+      setUnreadMessages(unread.length);
     } catch (err) {
       console.error("CLIENT_DASHBOARD_ERROR:", err);
     } finally {
@@ -52,8 +55,8 @@ export function ClientDashboard() {
     <div className="grid gap-6">
       <div className="grid gap-4 md:grid-cols-4">
         <Stat title="Active cases" value={String(cases.length)} />
+        <Stat title="Unread messages" value={String(unreadMessages)} />
         <Stat title="Drafts pending" value="0" />
-        <Stat title="Evidence files" value="0" />
         <Stat title="Upcoming dates" value={String(upcomingDates)} />
       </div>
 

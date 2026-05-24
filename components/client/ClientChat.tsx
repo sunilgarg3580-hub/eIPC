@@ -3,7 +3,11 @@
 import React, { useEffect, useState } from "react";
 import { getCurrentUser } from "@/lib/session";
 import { getClientCases } from "@/lib/caseService";
-import { getCaseChatMessages, saveChatMessage } from "@/lib/chatService";
+import {
+  getCaseMessages,
+  markClientMessagesRead,
+  sendCaseMessage,
+} from "@/lib/messageService";
 
 type ChatMessage = {
   id?: string;
@@ -59,7 +63,7 @@ export function ClientChat() {
     try {
       setLoadingChat(true);
 
-      const data = await getCaseChatMessages(caseId);
+      const data = await getCaseMessages(caseId);
 
       if (data.length === 0) {
         setMessages([
@@ -78,6 +82,8 @@ export function ClientChat() {
           }))
         );
       }
+
+      await markClientMessagesRead(caseId);
     } catch (err: any) {
       alert(err.message || "Unable to load chat.");
     } finally {
@@ -95,6 +101,16 @@ export function ClientChat() {
     }
   }, [selectedCaseId]);
 
+  useEffect(() => {
+    if (!selectedCaseId) return;
+
+    const interval = setInterval(() => {
+      loadChat(selectedCaseId);
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [selectedCaseId]);
+
   async function sendMessage() {
     if (!input.trim() || !selectedCaseId || !userId) return;
 
@@ -109,7 +125,7 @@ export function ClientChat() {
     setSending(true);
 
     try {
-      await saveChatMessage({
+      await sendCaseMessage({
         caseId: selectedCaseId,
         userId,
         role: "user",
@@ -137,19 +153,14 @@ export function ClientChat() {
         data.reply ||
         "Please share more facts, documents available, city, dates and the relief you want.";
 
-      const assistantMessage: ChatMessage = {
-        role: "assistant",
-        message: aiReply,
-      };
-
-      setMessages([...updatedMessages, assistantMessage]);
-
-      await saveChatMessage({
+      await sendCaseMessage({
         caseId: selectedCaseId,
         userId,
         role: "assistant",
         message: aiReply,
       });
+
+      await loadChat(selectedCaseId);
     } catch (err: any) {
       alert(err.message || "Unable to send message.");
     } finally {
@@ -157,13 +168,25 @@ export function ClientChat() {
     }
   }
 
+  function getMessageLabel(role: string) {
+    if (role === "advocate") return "Advocate";
+    if (role === "assistant") return "eIPC AI";
+    return "Client";
+  }
+
+  function getMessageStyle(role: string) {
+    if (role === "user") return "bg-slate-950 text-white";
+    if (role === "advocate") return "bg-blue-50 text-blue-950 border border-blue-100";
+    return "bg-white text-slate-800 shadow";
+  }
+
   return (
     <section className="rounded-3xl bg-white p-6 shadow">
       <div className="mb-5 flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold">AI Legal Chat</h2>
+          <h2 className="text-2xl font-bold">AI Legal Chat & Advocate Messages</h2>
           <p className="text-sm text-slate-500">
-            Chat history is saved against the selected case file.
+            Chat history, AI guidance and advocate messages are saved against the selected case file.
           </p>
         </div>
 
@@ -186,8 +209,7 @@ export function ClientChat() {
         </div>
       ) : cases.length === 0 ? (
         <div className="rounded-2xl bg-amber-50 p-5 text-sm leading-6 text-amber-900">
-          Please create a case file first from <b>My Case Files</b>. Chat history
-          must be linked to a case.
+          Please create a case file first from <b>My Case Files</b>. Chat history must be linked to a case.
         </div>
       ) : (
         <>
@@ -200,17 +222,12 @@ export function ClientChat() {
               messages.map((m, i) => (
                 <div
                   key={m.id || i}
-                  className={`mb-4 flex ${
-                    m.role === "user" ? "justify-end" : "justify-start"
-                  }`}
+                  className={`mb-4 flex ${m.role === "user" ? "justify-end" : "justify-start"}`}
                 >
-                  <div
-                    className={`max-w-[85%] whitespace-pre-wrap rounded-2xl p-4 text-sm leading-6 ${
-                      m.role === "user"
-                        ? "bg-slate-950 text-white"
-                        : "bg-white text-slate-800 shadow"
-                    }`}
-                  >
+                  <div className={`max-w-[85%] whitespace-pre-wrap rounded-2xl p-4 text-sm leading-6 ${getMessageStyle(m.role)}`}>
+                    <div className="mb-1 text-xs font-semibold opacity-60">
+                      {getMessageLabel(m.role)}
+                    </div>
                     {m.message}
                   </div>
                 </div>
@@ -231,7 +248,7 @@ export function ClientChat() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               className="min-h-[70px] flex-1 rounded-2xl border p-3 text-sm"
-              placeholder="Ask about this case..."
+              placeholder="Ask AI or message your advocate about this case..."
             />
 
             <button
