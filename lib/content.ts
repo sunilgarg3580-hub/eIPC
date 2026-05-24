@@ -112,6 +112,7 @@ export const CLIENT_TABS = [
   ["chat", "AI Legal Chat"],
   ["cases", "My Case Files"],
   ["evidence", "Evidence Vault"],
+  ["analysis", "AI Case Analysis"],
   ["drafts", "Drafts & Replies"],
   ["tracker", "Court Case Tracker"],
   ["lawyers", "Find Advocate"],

@@ -23,6 +23,7 @@ import { getCurrentUser } from "@/lib/session";
 import { logoutUser } from "@/lib/authService";
 import { ClientProfile } from "@/components/client/ClientProfile";
 import { EvidenceVault } from "@/components/client/EvidenceVault";
+import { CaseAnalysis } from "@/components/client/CaseAnalysis";
 
 export default function Page() {
   const [role, setRole] = useState<Role>("guest");
@@ -78,6 +79,7 @@ export default function Page() {
       "chat",
       "cases",
       "evidence",
+      "analysis",
       "drafts",
       "tracker",
       "lawyers",
@@ -167,6 +169,7 @@ export default function Page() {
           {activeTab === "chat" && <ClientChat />}
           {activeTab === "cases" && <ClientCases />}
           {activeTab === "evidence" && <EvidenceVault />}
+          {activeTab === "analysis" && <CaseAnalysis />}
           {activeTab === "drafts" && <ClientDrafts />}
           {activeTab === "tracker" && <CourtTracker />}
           {activeTab === "lawyers" && <FindAdvocate />}

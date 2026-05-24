@@ -55,14 +55,12 @@ export function Header({
               Welcome, {userName || role}
             </span>
 
-            {role !== "guest" && (
-              <button
-                onClick={() => setActiveTab("profile")}
-                className="rounded-2xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold hover:bg-slate-50"
-              >
-                My Profile
-              </button>
-            )}
+            <button
+              onClick={() => setActiveTab("profile")}
+              className="rounded-2xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold hover:bg-slate-50"
+            >
+              My Profile
+            </button>
 
             {role === "client" && (
               <button

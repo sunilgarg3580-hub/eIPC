@@ -70,7 +70,17 @@ export function detectLegalIntent(input: {
   ) {
     return "LEGAL_ADVICE";
   }
-
+  if (
+    text.includes("analysis") ||
+    text.includes("chronology") ||
+    text.includes("timeline") ||
+    text.includes("strength") ||
+    text.includes("weakness") ||
+    text.includes("case brief") ||
+    text.includes("next action")
+  ) {
+    return "EVIDENCE_REVIEW";
+  }
   return "GENERAL_CHAT";
 }
 
